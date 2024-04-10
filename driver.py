@@ -8,15 +8,10 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException,
 import functions
 
 from bs4 import BeautifulSoup
-import datetime
-import os
-import constants
-import pandas as pd
-import constants
-import time
-import random
+import datetime, os, constants, pandas as pd, time, random, functions
 
-class ScraperReclameAqui:
+
+class ChromeDriverReclameAQUI:
     def __init__(self, driver_path, chrome_path):
         self.driver_path = driver_path
         self.chrome_path = chrome_path
@@ -74,7 +69,6 @@ class ScraperReclameAqui:
 
         dataframe = pd.DataFrame(all_categories)
         return dataframe
-        # dataframe.to_csv('categories.csv', sep=',', index=False)
 
     def Accept_Cookies(self) -> None:
         '''
@@ -458,55 +452,38 @@ class ScraperReclameAqui:
                 data['Average Response Time'].append(average_response_time)
                 data['Period'].append(periodo)'''
 
-                self.Random_Sleep_Time(0.3, 1.6)
+                self.random_sleep_time(0.3, 1.6)
         except Exception as e:
             print(e)
     
         df = pd.DataFrame(data)
         return df
+    
+    def get_id_company(self, company_shortname, connection, cursor):
+        cursor.execute('SELECT id FROM CompaniesIds WHERE shortName = ?;', (company_shortname,))
+        row = cursor.fetchone()
+
+        if row:
+            return row[0]
+        else:
+            url = f"https://www.reclameaqui.com.br/empresa/{company_shortname}/"
+            self.driver.get(url)
+            IdCompany = self.driver.find_element(By.ID, 'cta-header-complain').get_attribute('href').split('/')[-2]
+            cursor.execute('INSERT INTO CompaniesIds (shortName, id) VALUES (?, ?);', (str(company_shortname), str(IdCompany)))
+            connection.commit()
+            return IdCompany
 
 
 if __name__ == '__main__':
     time_start = time.time()
-    scraper = ScraperReclameAqui(
+    scraper = ChromeDriverReclameAQUI(
         constants.driver_path,
         constants.chrome_path
     )
 
     scraper.Initialize_WebDriver()
-    sample_url = "https://www.reclameaqui.com.br/empresa/consorcio-roma/"
 
-    link = sample_url + 'lista-reclamacoes/'
-
-    performance = scraper.Scrape_Company_Performance(link)
-    performance.to_csv('perfomance.csv', index=False)
-    '''try:
-        scraper.Accept_Cookies()
-        ver_mas = scraper.driver.find_elements(By.XPATH, '//button[@class="sc-aXZVg kRkmJn"]')
-        for btn in ver_mas:
-            btn.click()
-            time.sleep(0.18)
-    except Exception as e:
-        print(e)
-
-    soup = scraper.Get_HTML_Parsed(link)
-    scraper.driver.implicitly_wait(5)
-
-    stats = scraper.Scrape_Main_Stats(soup)
-    stats['company'] = sample_url.split('/')[-2]
-
-    reclamations = scraper.Scrape_Last_Claims(soup)
-    reclamations['company'] = sample_url.split('/')[-2]
-
-    categories = scraper.Scrape_Claims_Categories(soup)
-    categories['company'] = sample_url.split('/')[-2]
-
-    stats.to_csv('stats.csv', sep=',', index=False)
-    reclamations.to_csv('reclamations.csv', sep=',', index=False)
-    categories.to_csv('categories_data.csv', sep=',', index=False)'''
-
-
-
+    scraper.driver.quit()
     time_finish = time.time()
     total_time = functions.calculate_process_duration(time_start, time_finish)
     print(total_time)

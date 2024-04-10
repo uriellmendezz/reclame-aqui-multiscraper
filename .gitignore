@@ -1,2 +1,4 @@
 env/
 reclameaqui-ranking_files/
+*.ipynb
+all_companies.csv
