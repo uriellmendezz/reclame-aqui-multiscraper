@@ -7,37 +7,10 @@ def connect_database(database_name="database.db"):
         cursor = connection.cursor()
 
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS Segments (
-                id INTEGER NOT NULL PRIMARY KEY,
-                name TEXT NOT NULL,
-                link TEXT
-            )''')
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS Companies (
-                id INTEGER NOT NULL PRIMARY KEY,
-                name TEXT,
-                shortName TEXT,
-                IdSegment INTEGER,
-                link TEXT,
-                FOREIGN KEY(IdSegment) REFERENCES Segments(id)
-            )''')
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS Claims (
-                id INTEGER NOT NULL PRIMARY KEY,
-                IdCompany INTERGER,
-                title TEXT,
-                description TEXT,
-                status TEXT,
-                link TEXT,  
-                FOREIGN KEY(IdCompany) REFERENCES Companies (id)
-            )''')
-        
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS CompaniesIds (
-                id TEXT UNIQUE NOT NULL PRIMARY KEY,
-                shortName TEXT
+            CREATE TABLE IF NOT EXISTS CompaniesData (
+                companyName INTEGER,
+                companyShortname TEXT,
+                companyId TEXT
             )''')
 
         connection.commit()
