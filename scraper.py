@@ -13,7 +13,6 @@ class ScraperReclameAqui:
         """
         Make a request to a page using cookies and headers predefined.
         """
-
         response = requests.request(method='GET', url=url, data="", headers=HEADERS)
         if response.status_code == 200:
             return response
@@ -49,7 +48,7 @@ class ScraperReclameAqui:
         if not table_exists:
             # Si la tabla no existe, la creamos
             self.cursor.execute('''CREATE TABLE IF NOT EXISTS CompaniesData
-                           (companyName TEXT, companyShortname TEXT, companyId TEXT UNIQUE)''')
+                           (companyName text, companyShortname text, companyId text UNIQUE)''')
             self.cursor.executemany('''INSERT INTO CompaniesData VALUES (?,?,?)''', full_dataframe.values)
             self.connection.commit()
 
@@ -66,20 +65,20 @@ class ScraperReclameAqui:
             print('New Companies added to database...')
             self.connection.commit()
 
-    def get_companies_from_category(self, company_link) -> pd.DataFrame:
+    def get_companies_from_category(self, categoryLink) -> pd.DataFrame:
         """
         Crawl through a specific category to find companies.
         Return a pandas DataFrame with each company in the category.
         """
-        if company_link[-1] == '/':
-            category_name = company_link.split('/')[-2]
+        if categoryLink[-1] == '/':
+            categoryLink = categoryLink.split('/')[-2]
         else:
-            company_link = company_link.split('/')[-1]
+            categoryLink = categoryLink.split('/')[-1]
 
         results = []
         for score in ['best', 'worst']:
             for n in range(1, 20):
-                url = f"https://iosearch.reclameaqui.com.br/raichu-io-site-search-v1/segments/ranking/{score}/{category_name}/{n}/10"
+                url = f"https://iosearch.reclameaqui.com.br/raichu-io-site-search-v1/segments/ranking/{score}/{categoryLink}/{n}/10"
 
                 response = requests.request("GET", url, data="", headers=HEADERS)
                 if response.status_code == 200:
@@ -87,13 +86,13 @@ class ScraperReclameAqui:
                     for row in data['companies']:
                         results.append(row)
 
-                    random_sleep_time(0.55, 2.15)
+                    random_sleep_time(1.23, 2.45)
                 else:
                     break
 
         dataframe = pd.json_normalize(results)
         dataframe = self.clean_dataframe(dataframe)
-        return dataframe
+        return dataframe.sort_values('companyName', ascending=True).reset_index(drop=True)
 
     def clean_dataframe(self, dataframe):
         """
@@ -108,11 +107,11 @@ class ScraperReclameAqui:
             'promotionLink',
             'ctaLink',
             'ctaText',
-            'hasLeadButton'
+            'hasLeadButton',
+            'id'
         ]
 
         column_to_rename = {
-            "id": "idCompany",
             "mainSegmentName": "segmentName",
             "mainSegmentShortname": "segmentShortName",
             "secondarySegmentName": "categoryName",
@@ -175,7 +174,7 @@ class ScraperReclameAqui:
             data = pd.json_normalize(data)
             data['companyId'] = companyId
             data['companyShortname'] = companyShortname
-            return data
+            return data.drop(columns=['delete', 'id', 'legacyId', 'ip', 'modified']).reset_index(drop=True)
         
         except Exception as e:
             print(e)
@@ -277,6 +276,24 @@ class ScraperReclameAqui:
         except Exception as e:
             print(e)
             return None
+        
+    def scrape_company_info(self, companyShortname):
+        id = self.get_company_id(companyShortname)
+        url = f'https://www.reclameaqui.com.br/empresa/{companyShortname}/'
+        response = self.request_get(url)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            tiempo = soup.find('div', class_='ra-since').text
+            cnpj = soup.find('a', class_='sc-1915fv4-7 fBlHuG').find('span').text
+            sobre = soup.find('ul', class_='sc-1915fv4-2 idgfcC').find('li').text
+            website = soup.find('a', {'title':'site', 'class':'sc-118qix7-0 eLwHfG'}).get('href')
+
+            print(tiempo)
+            print(cnpj)
+            print(sobre)
+            print(website)
+        else:
+            print(response)
 
     def pipeline(self, companyId):
         companyName, companyShortname = self.search_info_company(companyId)
@@ -309,14 +326,8 @@ if __name__ == "__main__":
     start = time.time()
     scraper = ScraperReclameAqui()    
 
-    name, shortname = scraper.search_info_company("928")
-    print(name, shortname)
-
-
-
-
-
-
+    data = scraper.get_companies_from_category("https://www.reclameaqui.com.br/segmentos/seguradoras/ecommerce-seguradoras/")
+    data.to_csv('category_ecommerce.csv', index=False)
 
 
 

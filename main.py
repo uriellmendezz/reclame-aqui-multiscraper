@@ -2,6 +2,74 @@ from scraper import ScraperReclameAqui
 from constants import HEADERS
 from functions import random_sleep_time, calculate_process_duration, connect_database
 import time, pandas as pd, random
+import argparse
+
+choices=['all', 'claims', 'evolution', 'problems']
+def execute(scraper):
+    parser = argparse.ArgumentParser(description='Scraping Reclamaqui')
+    extract_choices = [
+        'last-complains',
+        'problems',
+        'last-complains',
+        'index-evolution', 
+        'category'
+    ]
+
+    parser.add_argument('-extract', choices=extract_choices, metavar='choice', type=str, help='Extract data')
+    parser.add_argument('-companyId', metavar='choice', type=str, help='Extract data')
+    parser.add_argument('-shortname', metavar='company shortname', type=str, help='Extract data')
+    parser.add_argument('-url', metavar='category link', type=str, help='Extract companies from a category.')
+    
+    parser.add_argument('-rankings', action='store_true', help='Scrape rankings tables')
+    parser.add_argument('-f', '--function', help='Scpecify the function yo whant to use to extract.')
+    parser.add_argument('-o', '--output', type=str, help='Specify filename')
+    parser.add_argument('-excel', type=str, help='Specify filename')
+
+    args = parser.parse_args()
+
+    companyShortname = args.shortname
+    output = args.output
+    categoryLink = args.url
+
+    if args.extract == 'category':
+        if categoryLink:
+            data = scraper.get_companies_from_category(categoryLink)
+            print(data)
+        else:
+            print('Debes pasar el link de la categoria.')
+
+    if args.extract == 'problems':
+        if companyShortname:
+            companyId = scraper.get_company_id(companyShortname)
+            data = scraper.scrape_company_MainProblems(args.shortname)
+            problems = scraper.get_MainProblems_problems(data, companyId)
+            print(problems)
+        else:
+            print('Coloque el nombre corto de la empresa: -shortname "example-company-name"')
+
+    if args.extract == 'last-complains':
+        if companyShortname:
+            companyId = scraper.get_company_id(companyShortname)
+            pending_complains = scraper.scrape_company_claims(companyShortname, status='pending', n=10)
+            answered_complains = scraper.scrape_company_claims(companyShortname, status='answered', n=10)
+
+            concated = pd.concat([pending_complains, answered_complains]).sort_values('created').reset_index(drop=True)
+            print(concated)
+        else:
+            print('Coloque el nombre corto de la empresa: -shortname "example-company-name"')
+
+    if args.extract == 'index-evolution':
+        if companyShortname:
+            companyId = scraper.get_company_id(companyShortname)
+            evolution = scraper.scrape_company_Evolution(companyShortname)
+            print(evolution)
+            if output:
+                pass
+
+        else:
+            print('Coloque el nombre corto de la empresa: -shortname "example-company-name"')
+
+
 
 if __name__ == "__main__":
     start = time.time()
@@ -50,7 +118,7 @@ if __name__ == "__main__":
     pending_complains = scraper.scrape_company_claims(sample_company_shortname, 'pending', n=5)
 
     print(answered_complains.head())
-    print(pending_complains.head())'''
+    print(pending_complains.head())
 
     ids = ['7936', '10023', '12949', '2406']
     evolutions = []
@@ -69,15 +137,10 @@ if __name__ == "__main__":
 
     evolutions_df.to_csv('results-dataframes/evolutions.csv', index=False)
     claims_df.to_csv('results-dataframes/claims.csv', index=False)
-    complains_df.to_csv('results-dataframes/complains.csv', index=False)
+    complains_df.to_csv('results-dataframes/complains.csv', index=False)'''
 
-
-
-
-
-
-
+    execute(scraper)
 
     end = time.time()
     total_time = calculate_process_duration(start, end)
-    print(f'\n\n{total_time}')
+    print(f'Process duration: ----> {total_time}')
