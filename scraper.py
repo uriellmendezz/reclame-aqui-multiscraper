@@ -70,10 +70,12 @@ class ScraperReclameAqui:
         Crawl through a specific category to find companies.
         Return a pandas DataFrame with each company in the category.
         """
-        if categoryLink[-1] == '/':
-            categoryLink = categoryLink.split('/')[-2]
-        else:
-            categoryLink = categoryLink.split('/')[-1]
+        if '/' in categoryLink:
+            if categoryLink[-1] == '/':
+                categoryLink = categoryLink.split('/')[-2]
+            else:
+                categoryLink = categoryLink.split('/')[-1]
+            
 
         results = []
         for score in ['best', 'worst']:
@@ -164,7 +166,8 @@ class ScraperReclameAqui:
             print(e)
             print('Id not founded.')
 
-    def scrape_company_Evolution(self, companyShortname):
+    def scrape_company_Evolution(self, companyLink):
+        companyShortname = companyLink.split('/')[-2]
         companyId = self.get_company_id(companyShortname)
         url = f"https://iosite.reclameaqui.com.br/raichu-io-site-v1/company/indexevolution/{companyId}"
 
@@ -174,13 +177,14 @@ class ScraperReclameAqui:
             data = pd.json_normalize(data)
             data['companyId'] = companyId
             data['companyShortname'] = companyShortname
-            return data.drop(columns=['delete', 'id', 'legacyId', 'ip', 'modified']).reset_index(drop=True)
+            return data.drop(columns=['deleted', 'id', 'legacyId', 'ip', 'modified']).reset_index(drop=True)
         
         except Exception as e:
             print(e)
             return None
 
-    def scrape_company_MainProblems(self, companyShortname):
+    def scrape_company_MainProblems(self, companyLink):
+        companyShortname = companyLink.split('/')[-2]
         companyId = self.get_company_id(companyShortname)
         url = f"https://iosearch.reclameaqui.com.br/raichu-io-site-search-v1/query/companyMainProblems/{companyId}"
 
@@ -195,44 +199,59 @@ class ScraperReclameAqui:
             print(e)
             return None
 
-    def get_MainProblems_categories(self, json_data, companyId):
+    def get_MainProblems_categories(self, json_data, companyLink):
         try:
+            companyShortname = companyLink.split('/')[-2]
+            id = self.get_company_id(companyShortname)
             data = json_data['complainResult']['complains']['categories']
             data = self.clean_company_MainProblems_dataframe(pd.json_normalize(data))
-            data['companyId'] = companyId
+            data['companyId'] = id
             data['type'] = 'category'
             return data
         except Exception as e:
             print(e)
             return None
 
-    def get_MainProblems_problems(self, json_data, companyId):
+    def get_MainProblems_problems(self, json_data, companyLink):
         try:
+            companyShortname = companyLink.split('/')[-2]
+            id = self.get_company_id(companyShortname)
             data = json_data['complainResult']['complains']['problems']
             data = self.clean_company_MainProblems_dataframe(pd.json_normalize(data))
             data['type'] = 'problem_type'
-            data['companyId'] = companyId
+            data['companyId'] = id
             return data
 
         except Exception as e:
             print(e)
             return None
 
-    def get_MainProblems_products(self, json_data, companyId):
+    def get_MainProblems_products(self, json_data, companyLink):
         try:
+            companyShortname = companyLink.split('/')[-2]
+            id = self.get_company_id(companyShortname)
             data = json_data['complainResult']['complains']['products']
             data = self.clean_company_MainProblems_dataframe(pd.json_normalize(data))
-            data['companyId'] = companyId
+            data['companyId'] = id
             data['type'] = 'pruduct&service'
             return data
         except Exception as e:
             print(e)
             return None
+        
+    def concat_dataframes(self,data:list):
+        try:
+            return pd.concat(data).reset_index(drop=True)
+        except Exception as e:
+            print(e)
+            return pd.DataFrame()
+    
 
     def clean_company_MainProblems_dataframe(self, df):
         return df[['name', 'count', 'recorrencyPercentual']]
     
-    def scrape_company_claims(self, companyShortname, status:str, n):
+    def scrape_company_claims(self, companyLink, status:str, n):
+        companyShortname = companyLink.split('/')[-2]
         if status in ['pending', 'Pending', 'PENDING']:
             companyId = self.get_company_id(companyShortname)
             url = f'''https://iosearch.reclameaqui.com.br/raichu-io-site-search-v1/complains?company={companyId}&status=PENDING&evaluated=bool%3Afalse&index=0&offset={n}&order=created&orderType=desc&deleted=bool%3Afalse&fields=evaluated,title,solved,status,created,description'''
@@ -277,7 +296,8 @@ class ScraperReclameAqui:
             print(e)
             return None
         
-    def scrape_company_info(self, companyShortname):
+    def scrape_company_info(self, companyLink):
+        companyShortname = companyLink.split('/')[-2]
         id = self.get_company_id(companyShortname)
         url = f'https://www.reclameaqui.com.br/empresa/{companyShortname}/'
         response = self.request_get(url)

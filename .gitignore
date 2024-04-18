@@ -5,3 +5,4 @@ all_companies.csv
 ranking/
 database_companies.csv
 results-dataframes/
+*.csv

@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-import os, random, time, datetime, sqlite3, pandas as pd
+import os, random, time, datetime, sqlite3, pandas as pd, argparse
 
 def connect_database(database_name="database.db"):
     if not os.path.exists('database.db'):
@@ -31,4 +31,3 @@ def random_sleep_time(min, max):
     
     sleep_time = random.uniform(max, min)
     time.sleep(sleep_time)
-
