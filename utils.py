@@ -57,32 +57,59 @@ class ArgumentsParse:
 
         # Category & Categories
         if extract == 'category':
-            if link:
-                try:
-                    data = scraper.get_companies_from_category(link)
-                    print(data.head(10))
-                    if output:
-                        if '.csv' in output:
-                            data.to_csv(output, index=False)
-                        elif any(x in output for x in ['.xlsx', '.xls']):
-                            data.to_excel(output, index=False)
-                        else:
-                            print('Only CSV files and Excel are allowed as output file format')
+            if output.endswith(('.csv', '.xlsx')):
+                if link:
+                    try:
+                        data = scraper.get_companies_from_category(link)
+                        print(data.head(10))
+                        data.to_csv(output, index=False) if output.endswith('.csv') else data.to_excel(output, index=False)
 
-                except Exception as e:
-                    print(e)
+                    except Exception as e:
+                        print(e)
+
+                else:
+                    print('[-l LINK] argument is mandatory to scrape "category"')
             else:
-                print('Insert the category link please.')
+                print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx)')
+
 
         if extract == 'categories':
-            if link:
-                pass
+            if output.endswith(('.csv', '.xlsx')):
+                if filename.endswith(('.csv', '.xlsx')):
+                    categories_df = pd.read_csv(filename) if filename.endswith('.csv') else pd.read_excel(filename)
+
+                    resutls = []
+                    links = categories_df.link.dropna().unique().tolist()
+                    for link in links:
+                        companies = scraper.get_companies_from_category(link)
+                        resutls.append(companies)
+                        random_sleep_time(1.6, 3.7)
+                    
+                    try:
+                        concated = scraper.concat_dataframes(resutls)
+                        now = str(datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d-%H-%M-%S'))
+                        if output.endswith('.csv'):
+                            outfile = output.split('.csv')[0] + '-' + now + '.csv'
+                            concated.to_csv(outfile, index=False)
+                        else:
+                            outfile = output.split('.xlsx')[0] + '-' + now + '.xlsx'
+                            concated.to_excel(outfile, index=False)
+                    
+                    except Exception as e:
+                        print(e)
+                        print(f'Fail to download {output}')
+                else:
+                    print('[-f FILENAME] only accept CSV (.csv) or Excel (.xlsx) files.')
+
+
             else:
-                print('Insert [-v VALUE] please.')
+                print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx)')
+                
+
 
         # Company & Companies
         if extract == 'company':
-            if any(e in output for e in ['.csv', '.xlsx', '.xls']):
+            if output.endswith(['.csv', '.xlsx']):
                 if data_:
                     if link:
                         if data_.lower() == 'last complains':
@@ -91,13 +118,8 @@ class ArgumentsParse:
                                 answered = scraper.scrape_company_claims(link, 'answered', 10)
                                 data = scraper.concat_dataframes([pending, answered])
                                 print(data.head(10))
+                                data.to_csv(output, index=False) if output.endswith('.csv') else data.to_excel(output, index=False)
                                 
-                                if '.csv' in output:
-                                    data.to_csv(output, index=False)
-                                elif any(x in output for x in ['.xlsx', '.xls']):
-                                    data.to_excel(output, index=False)
-                                else:
-                                    print('Only CSV files and Excel are allowed as output file format')
                             except Exception as e:
                                 print(e)
 
@@ -110,13 +132,8 @@ class ArgumentsParse:
 
                                 full_concated = scraper.concat_dataframes([problems, categories, products])
                                 print(full_concated.head(10))
-                                
-                                if '.csv' in output:
-                                    full_concated.to_csv(output, index=False)
-                                elif any(x in output for x in ['.xlsx', '.xls']):
-                                    full_concated.to_excel(output, index=False)
-                                else:
-                                    print('Only CSV files and Excel are allowed as output file format')
+                                full_concated.to_csv(output, index=False) if output.endswith('.csv') else full_concated.to_excel(output, index=False)
+
                             except Exception as e:
                                 print(e)
 
@@ -124,12 +141,8 @@ class ArgumentsParse:
                             try:
                                 data = scraper.scrape_company_Evolution(link)
                                 print(data.head(10))
-                                if '.csv' in output:
-                                    data.to_csv(output, index=False)
-                                elif any(x in output for x in ['.xlsx', '.xls']):
-                                    data.to_excel(output, index=False)
-                                else:
-                                    print('Only CSV files and Excel are allowed as output file format')
+                                data.to_csv(output, index=False) if output.endswith('.csv') else data.to_excel(output, index=False)
+
                             except Exception as e:
                                 print(e)
 
@@ -137,16 +150,15 @@ class ArgumentsParse:
                         print('Insert the following argument please: [-l LINK]')
 
             else:
-                print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx, .xls)')
+                print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx)')
 
 
         if extract == 'companies':
             print('Empezando a scrapear companies')
-            if any(e in output for e in ['.csv', '.xlsx', '.xls']):
+            if output.endswith(('.csv', '.xlsx')):
                 if filename:
-                    if any(e in filename for e in ['.csv', '.xlsx', '.xls']):
-                        input_data = pd.read_excel(filename) if any(e in filename for e in ['xlsx', 'xls']) \
-                            else pd.read_csv(filename)
+                    if filename.endswith(('.csv', '.xlsx')):
+                        input_data = pd.read_excel(filename) if filename.endswith('.xlsx') else pd.read_csv(filename)
                         companies = input_data.link.dropna().unique().tolist()
 
                         lastComplains = []
@@ -203,11 +215,6 @@ class ArgumentsParse:
                             dataframe_lastClaims.to_csv(filename_output.replace('-CHANGE-', '-lastClaims-'), index=False)
                             dataframe_problemsTypes.to_csv(filename_output.replace('-CHANGE-', '-problems-'), index=False)
                             dataframe_indexEvolution.to_csv(filename_output.replace('-CHANGE-', '-indexEvolution-'), index=False)
-                        elif output.endswith('.xls'):
-                            filename_output = output.split('.xls')[0] + '-CHANGE-' + str(now) + '.xls'
-                            dataframe_lastClaims.to_csv(filename_output.replace('-CHANGE-', '-lastClaims-'), index=False)
-                            dataframe_problemsTypes.to_csv(filename_output.replace('-CHANGE-', '-problems-'), index=False)
-                            dataframe_indexEvolution.to_csv(filename_output.replace('-CHANGE-', '-indexEvolution-'), index=False)
                         else:
                             filename_output = output.split('.xlsx')[0] + '-CHANGE-' + str(now) + '.xlsx'
                             dataframe_lastClaims.to_csv(filename_output.replace('-CHANGE-', '-lastClaims-'), index=False)
@@ -217,4 +224,4 @@ class ArgumentsParse:
                 else:
                     print('[-f FILENAME] is mandatory for [-e "companies"]')
             else:
-                print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx, .xls)')
+                print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx)')

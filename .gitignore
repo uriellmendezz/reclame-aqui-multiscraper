@@ -6,3 +6,4 @@ ranking/
 database_companies.csv
 results-dataframes/
 *.csv
+*.xlsx

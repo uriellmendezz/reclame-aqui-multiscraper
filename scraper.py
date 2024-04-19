@@ -346,8 +346,13 @@ if __name__ == "__main__":
     start = time.time()
     scraper = ScraperReclameAqui()    
 
-    data = scraper.scrape_company_Evolution("https://www.reclameaqui.com.br/empresa/extrafarma/")
+    data = scraper.get_companies_from_category("https://www.reclameaqui.com.br/segmentos/alimentos-e-bebidas/delivery/")
     print(data)
+
+    try:
+        data.to_excel('probando-bajada.xls', index=False)
+    except Exception as e:
+        print(e)
 
     scraper.close_connection()
     end = time.time()
