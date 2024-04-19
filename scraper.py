@@ -346,10 +346,8 @@ if __name__ == "__main__":
     start = time.time()
     scraper = ScraperReclameAqui()    
 
-    data = scraper.get_companies_from_category("https://www.reclameaqui.com.br/segmentos/seguradoras/ecommerce-seguradoras/")
-    data.to_csv('category_ecommerce.csv', index=False)
-
-
+    data = scraper.scrape_company_Evolution("https://www.reclameaqui.com.br/empresa/extrafarma/")
+    print(data)
 
     scraper.close_connection()
     end = time.time()

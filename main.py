@@ -58,5 +58,5 @@ if __name__ == "__main__":
 
     end = time.time()
     total_time = calculate_process_duration(start, end)
-    print('\n'*2)
+    print('\n')
     print(f'Process duration: ----> {total_time}')
