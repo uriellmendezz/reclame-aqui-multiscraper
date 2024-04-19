@@ -2,17 +2,15 @@
 
 | **Argument** | **Required** | **Type** | **Help** | **Valid choices** | **Examples** | **Works for** |  
 |-----------|-----------|--------------|-------|---------|---------|---------|
-| ```-e``` *(--extract)* | Yes | str *(text)* | Specify the name of the group from which you want to extract data | ['company', 'companies', 'category', 'categories'] | ```-e 'category'```, ```-e 'categories'```, ```-e 'company'```, ```-e 'companies'```| - |
-| ```-d``` *(--data)* | No | str *(text)* | Data you want to scrape | ['last complains','problems','index evolution'] | ```-d 'last complains'```, ```-d ''problems''```, ```-d 'index evolution'``` | **['company']** |
-| ```-l``` *(--link)* | No | str *(text)* | Chose a method | <u>*https://www.reclameaqui.com.br/empresa/{company name}/*</u> and <u>*https://www.reclameaqui.com.br/segmentos/{segment name}/{category name}*</u> |*company link:*  ```-l 'https://www.reclameaqui.com.br/empresa/amazon/'```, *category link:*  ```-l 'https://www.reclameaqui.com.br/segmentos/beleza-e-estetica/higiene-pessoal/'```  | **['company', 'companies', 'category', 'categories']** |
-| ```-o``` *(--output)* | Yes | str *(text)* | Output filename | *valid extensions:* *.csv  *.xlsx  *.xls| ```-o 'test-file.csv'```, ```-o 'test-file.xlsx'```, ```-o 'test-file.xls'```| **['company', 'companies', 'category', 'categories']** | 
-| ```-f``` *(--filename)* | No | str *(text)* | Filename to read | *valid extensions:* *.csv  *.xlsx  *.xls| ```-f 'links-banks-companies.csv'```, ```-f 'links-beauty-companies-ranking.xlsx'```, ```-f 'best-companies-2023.xls'```| **['companies', 'categories']** | 
-
-
-## Examples of usage:
+| ```-e``` *(--extract)* | Yes | str *(text)* | Section you want to extract. | ['company', 'companies', 'category', 'categories', 'rankings'] | ```-e 'category'```, ```-e 'categories'```, ```-e 'company'```, ```-e 'companies'```, ```-e 'rankings'```| - |
+| ```-d``` *(--data)* | No | str *(text)* | Data you want to scrape. | ['last complains','problems','index evolution'] | ```-d 'last complains'```, ```-d ''problems''```, ```-d 'index evolution'``` | **['company']** |
+| ```-l``` *(--link)* | No | str *(text)* | Category/Company link | <u>*https://www.reclameaqui.com.br/empresa/{company name}/*</u> and <u>*https://www.reclameaqui.com.br/segmentos/{segment name}/{category name}*</u> |*company link:*  ```-l 'https://www.reclameaqui.com.br/empresa/amazon/'```, *category link:*  ```-l 'https://www.reclameaqui.com.br/segmentos/beleza-e-estetica/higiene-pessoal/'```  | **['company', 'companies', 'category', 'categories']** |
+| ```-o``` *(--output)* | Yes | str *(text)* | Output filename | *valid extensions:* *.csv  *.xlsx  *.xls| ```-o 'test-file.csv'```, ```-o 'test-file.xlsx'```, ```-o 'test-file.xls'```| **['company', 'companies', 'category', 'categories', 'rankings']** | 
+| ```-f``` *(--filename)* | No | str *(text)* | Filename (to massive scrape). | *valid extensions:* *.csv  *.xlsx  *.xls| ```-f 'links-banks-companies.csv'```, ```-f 'links-beauty-companies-ranking.xlsx'```, ```-f 'best-companies-2023.xls'```| **['companies', 'categories']** | 
 
 <br>
-<br>
+
+## Examples of usage.
 
 **Extract the index evolution from an specific company.**
 ``` bash
@@ -108,7 +106,7 @@ python main.py -e 'category' -l 'https://www.reclameaqui.com.br/segmentos/eletro
 
 [10 rows x 17 columns]
 ```
-<br>
+
 <br>
 
 **Given an Excel file, extract data from various companies. The program will download three files**
@@ -154,4 +152,25 @@ Index evolution:
 9  2023-06-18T01:55:30                52  ...  RA1000  plenitude-distribuidora
 
 [10 rows x 16 columns]
+```
+<br>
+
+**Extract current company ranking tables. Downloads and Excel file with multiple spredsheets (each one a ranking table)**
+
+```bash
+python main.py -e 'rankings' -o 'rankings-tables-xlsx'
+```
+
+```bash
+   status      companyCreation  solvingRate  ...  mainSegment   secondarySegments  hasVerified
+0   GREAT  2023-01-12T09:23:21        100.0  ...            9  [4ttEZI_ZlW4M-aIY]        False
+1  RA1000  2014-10-28T13:57:00        100.0  ...           16                  []        False
+2   GREAT  2021-05-03T19:19:44        100.0  ...            4                  []        False
+3  RA1000  2009-07-02T10:22:00         98.4  ...           16  [Fqq7lNsvZxZHN-HA]        False
+4  RA1000  2008-12-05T08:42:00         98.0  ...            5  [wSc0pBs0xq3zS4aR]        False
+5   GREAT  2019-09-12T15:55:12         97.9  ...            3  [rBr47s_1-5ca6TcT]         True
+6  RA1000  2009-10-27T11:37:00         98.9  ...            2                  []        False
+7  RA1000  2020-05-07T08:38:49         99.0  ...            4                  []        False
+8  RA1000  2021-04-29T10:11:39         99.2  ...            9  [oSilrbhvXd-1__C1]        False
+9  RA1000  2010-05-14T15:38:00        100.0  ...           20  [MckKImFcBkMhvQtb]        False
 ```

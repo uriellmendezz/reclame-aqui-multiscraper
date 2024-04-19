@@ -10,7 +10,7 @@ class ArgumentsParse:
         company_choices = ['last complains','problems','index evolution']
         
         parser.add_argument('-e','--extract',
-                            choices=['category', 'categories', 'company', 'companies'],
+                            choices=['category', 'categories', 'company', 'companies', 'rankings'],
                             metavar='CHOICE',
                             type=str,
                             help='Specify the name of the group from which you want to extract data.',
@@ -72,7 +72,6 @@ class ArgumentsParse:
             else:
                 print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx)')
 
-
         if extract == 'categories':
             if output.endswith(('.csv', '.xlsx')):
                 if filename.endswith(('.csv', '.xlsx')):
@@ -105,7 +104,6 @@ class ArgumentsParse:
             else:
                 print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx)')
                 
-
 
         # Company & Companies
         if extract == 'company':
@@ -151,7 +149,6 @@ class ArgumentsParse:
 
             else:
                 print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx)')
-
 
         if extract == 'companies':
             print('Empezando a scrapear companies')
@@ -225,3 +222,10 @@ class ArgumentsParse:
                     print('[-f FILENAME] is mandatory for [-e "companies"]')
             else:
                 print('Only CSV files and Excel are allowed as output file format (.csv, .xlsx)')
+
+
+        if extract == 'rankings':
+            if output.endswith('.xlsx'):
+                scraper.scrape_ranking_lists(output, 20)
+            else:
+                print('[-o OUTPUT NAME] only allow the extension ".xlsx" for [-e "rankings"]')

@@ -27,43 +27,6 @@ class ScraperReclameAqui:
             return BeautifulSoup(response.content, 'html.parser')
         except:
             raise Exception("can't parse html")
-        
-    def get_all_companies(self, max:int):
-        """
-        This function scrape all the existing companies from Reclame AQUI website.
-        It iterates each category of the page and saves the results in an array. Then
-        convert this array into a pandas DataFrame and return it.
-        """
-        dfs = []
-        data_json = self.scrape_ranking_lists(max)
-        for key in data_json.keys():
-            df = pd.json_normalize(data_json[key])[['companyName', 'companyShortname', 'companyId']]
-            dfs.append(df)
-
-        full_dataframe = pd.concat(dfs).drop_duplicates(subset='companyId')
-
-        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='CompaniesData'")
-        table_exists = self.cursor.fetchone()
-
-        if not table_exists:
-            # Si la tabla no existe, la creamos
-            self.cursor.execute('''CREATE TABLE IF NOT EXISTS CompaniesData
-                           (companyName text, companyShortname text, companyId text UNIQUE)''')
-            self.cursor.executemany('''INSERT INTO CompaniesData VALUES (?,?,?)''', full_dataframe.values)
-            self.connection.commit()
-
-        else:
-            self.cursor.execute('''SELECT DISTINCT companyId FROM CompaniesData''')
-            in_database = self.cursor.fetchall()
-
-            in_database_list = [c[0] for c in in_database]
-            no_tracked_companies = full_dataframe[~full_dataframe.companyId.isin(in_database_list)]
-
-            self.cursor.executemany('''INSERT OR IGNORE INTO CompaniesData
-                               (companyName, companyShortname, companyId) VALUES (?, ?, ?)''',
-                               no_tracked_companies.values)
-            print('New Companies added to database...')
-            self.connection.commit()
 
     def get_companies_from_category(self, categoryLink) -> pd.DataFrame:
         """
@@ -286,15 +249,23 @@ class ScraperReclameAqui:
         else:
             print('valid status values: "pending" or "answered"')
 
-    def scrape_ranking_lists(self, n_rows):
+    def scrape_ranking_lists(self, output, n_rows):
         try:
             url = f"https://iosite.reclameaqui.com.br/raichu-io-site-v1/company/rankings/{n_rows}"
             response = self.request_get(url)
             response_json = response.json()
-            return response_json
+
+            print(pd.json_normalize(response_json['topScores']).head(10))
+            
+            with pd.ExcelWriter(output) as writer:
+                for k in response_json.keys():
+                    df = pd.json_normalize(response_json[k])
+                    df.to_excel(writer, sheet_name=f'{k}', index=False)
+
+            print(f'The file "{output}" was downloaded succesfuly.')    
+
         except Exception as e:
             print(e)
-            return None
         
     def scrape_company_info(self, companyLink):
         companyShortname = companyLink.split('/')[-2]
@@ -346,13 +317,7 @@ if __name__ == "__main__":
     start = time.time()
     scraper = ScraperReclameAqui()    
 
-    data = scraper.get_companies_from_category("https://www.reclameaqui.com.br/segmentos/alimentos-e-bebidas/delivery/")
-    print(data)
-
-    try:
-        data.to_excel('probando-bajada.xls', index=False)
-    except Exception as e:
-        print(e)
+    scraper.scrape_ranking_lists('excel-prueba-hojas.xlsx',20)
 
     scraper.close_connection()
     end = time.time()
