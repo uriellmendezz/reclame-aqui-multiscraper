@@ -1,7 +1,6 @@
-import argparse, pandas as pd
+import argparse, pandas as pd, datetime
 from scraper import ScraperReclameAqui
 from functions import random_sleep_time
-import datetime
 
 class ArgumentsParse:
     def arguments(self):
@@ -24,29 +23,28 @@ class ArgumentsParse:
                             required=False)
         
         parser.add_argument('-l', '--link',
-                            metavar='METHOD',
+                            metavar='LINK',
                             type=str,
-                            help='Chose a method',
+                            help='Insert the company/category link.',
                             required=False)
         
         parser.add_argument('-o', '--output',
                             metavar='FILENAME',
                             type=str,
-                            help='Output filename',
+                            help='Insert the output filename.',
                             required=True)
         
         parser.add_argument('-f', '--filename',
                             metavar='FILENAME',
                             type=str,
-                            help='Filename to read.',
+                            help='Filename (to massive scrape).',
                             required=False)
         
         self.args = parser.parse_args()
 
     def execute_arguments(self, scraper:ScraperReclameAqui):
 
-        if self.args.extract is not None:
-            extract = self.args.extract
+        extract = self.args.extract
         if self.args.data is not None:
             data_ = self.args.data
         if self.args.link is not None:

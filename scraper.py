@@ -10,9 +10,7 @@ class ScraperReclameAqui:
         self.cursor = self.connection.cursor()
 
     def request_get(self, url):
-        """
-        Make a request to a page using cookies and headers predefined.
-        """
+        """Make a request to a page using cookies and headers predefined."""
         response = requests.request(method='GET', url=url, data="", headers=HEADERS)
         if response.status_code == 200:
             return response
@@ -20,9 +18,7 @@ class ScraperReclameAqui:
             raise Exception("failed request", response)
 
     def parse_html(self, response):
-        """
-        Take the response from a request and parse it using BeautifulSoup.
-        """
+        """Take the response from a request and parse it using BeautifulSoup."""
         try:
             return BeautifulSoup(response.content, 'html.parser')
         except:
@@ -30,9 +26,7 @@ class ScraperReclameAqui:
 
     def get_companies_from_category(self, categoryLink) -> pd.DataFrame:
         """
-        Crawl through a specific category to find companies.
-        Return a pandas DataFrame with each company in the category.
-        """
+        Crawl through a specific category to find companies. Return a pandas DataFrame with each company in the category."""
         if '/' in categoryLink:
             if categoryLink[-1] == '/':
                 categoryLink = categoryLink.split('/')[-2]
@@ -61,9 +55,9 @@ class ScraperReclameAqui:
 
     def clean_dataframe(self, dataframe):
         """
-        Function to clean a dataframe coming from *get_companies_from_category* function.
-        It removes extra columns and rename anothers.
-        """
+        Function to clean a dataframe coming from *gees_from_category* function.
+        It removes extra columns and rename anothers."""
+
         columns_to_drop = [
             'logo',
             'promotionValueUnit',
@@ -88,6 +82,8 @@ class ScraperReclameAqui:
         return dataframe.drop(columns=columns_to_drop).rename(columns=column_to_rename)
     
     def scrape_company_id(self, companyShortname):
+        '''Scrapes the company ID from its Reclame Aqui page.'''
+        
         url = f"https://www.reclameaqui.com.br/empresa/{companyShortname}/"
         response = requests.request('GET', url=url, data="", headers=HEADERS)
         if response.status_code == 200:
@@ -108,6 +104,8 @@ class ScraperReclameAqui:
             return None
        
     def get_company_id(self, companyShortname):
+        '''Gets the company ID from the database, or scrapes it if not found.'''
+
         try:
             self.cursor.execute('SELECT companyId FROM CompaniesData WHERE companyShortname = ?;',
                            (companyShortname,))
@@ -120,6 +118,8 @@ class ScraperReclameAqui:
                 return None
                 
     def search_info_company(self, id):
+        '''Searches for company information using its ID.'''
+
         try:
             self.cursor.execute('''SELECT companyName, companyShortname FROM CompaniesData
                                 WHERE companyId = ?''', (id,))
@@ -130,6 +130,8 @@ class ScraperReclameAqui:
             print('Id not founded.')
 
     def scrape_company_Evolution(self, companyLink):
+        '''Scrapes the evolution data for a company.'''
+
         companyShortname = companyLink.split('/')[-2]
         companyId = self.get_company_id(companyShortname)
         url = f"https://iosite.reclameaqui.com.br/raichu-io-site-v1/company/indexevolution/{companyId}"
@@ -147,6 +149,8 @@ class ScraperReclameAqui:
             return None
 
     def scrape_company_MainProblems(self, companyLink):
+        '''Scrapes the main problems reported for a company.'''
+
         companyShortname = companyLink.split('/')[-2]
         companyId = self.get_company_id(companyShortname)
         url = f"https://iosearch.reclameaqui.com.br/raichu-io-site-search-v1/query/companyMainProblems/{companyId}"
@@ -163,6 +167,8 @@ class ScraperReclameAqui:
             return None
 
     def get_MainProblems_categories(self, json_data, companyLink):
+        '''Extracts main problem categories from JSON data.'''
+
         try:
             companyShortname = companyLink.split('/')[-2]
             id = self.get_company_id(companyShortname)
@@ -176,6 +182,8 @@ class ScraperReclameAqui:
             return None
 
     def get_MainProblems_problems(self, json_data, companyLink):
+        '''Extracts main problem types from JSON data.'''
+
         try:
             companyShortname = companyLink.split('/')[-2]
             id = self.get_company_id(companyShortname)
@@ -190,6 +198,10 @@ class ScraperReclameAqui:
             return None
 
     def get_MainProblems_products(self, json_data, companyLink):
+        '''
+        Extracts main problem products/services from JSON data.
+        '''
+
         try:
             companyShortname = companyLink.split('/')[-2]
             id = self.get_company_id(companyShortname)
@@ -203,6 +215,8 @@ class ScraperReclameAqui:
             return None
         
     def concat_dataframes(self,data:list):
+        '''Concatenates a list of DataFrames into one DataFrame.'''
+
         try:
             return pd.concat(data).reset_index(drop=True)
         except Exception as e:
@@ -211,9 +225,13 @@ class ScraperReclameAqui:
     
 
     def clean_company_MainProblems_dataframe(self, df):
+        '''Cleans the DataFrame of main problems reported.'''
+
         return df[['name', 'count', 'recorrencyPercentual']]
     
     def scrape_company_claims(self, companyLink, status:str, n):
+        '''Scrapes claims (complaints) for a company based on status and pagination.'''
+
         companyShortname = companyLink.split('/')[-2]
         if status in ['pending', 'Pending', 'PENDING']:
             companyId = self.get_company_id(companyShortname)
@@ -250,6 +268,8 @@ class ScraperReclameAqui:
             print('valid status values: "pending" or "answered"')
 
     def scrape_ranking_lists(self, output, n_rows):
+        '''Scrapes ranking lists from Reclame Aqui and saves them to an Excel file.'''
+
         try:
             url = f"https://iosite.reclameaqui.com.br/raichu-io-site-v1/company/rankings/{n_rows}"
             response = self.request_get(url)
@@ -266,51 +286,9 @@ class ScraperReclameAqui:
 
         except Exception as e:
             print(e)
-        
-    def scrape_company_info(self, companyLink):
-        companyShortname = companyLink.split('/')[-2]
-        id = self.get_company_id(companyShortname)
-        url = f'https://www.reclameaqui.com.br/empresa/{companyShortname}/'
-        response = self.request_get(url)
-        if response.status_code == 200:
-            soup = BeautifulSoup(response.text, 'html.parser')
-            tiempo = soup.find('div', class_='ra-since').text
-            cnpj = soup.find('a', class_='sc-1915fv4-7 fBlHuG').find('span').text
-            sobre = soup.find('ul', class_='sc-1915fv4-2 idgfcC').find('li').text
-            website = soup.find('a', {'title':'site', 'class':'sc-118qix7-0 eLwHfG'}).get('href')
-
-            print(tiempo)
-            print(cnpj)
-            print(sobre)
-            print(website)
-        else:
-            print(response)
-
-    def pipeline(self, companyId):
-        companyName, companyShortname = self.search_info_company(companyId)
-
-        evolution = self.scrape_company_Evolution(companyShortname)
-        random_sleep_time(min=1.2, max=3.7)
-
-        pending_claims = self.scrape_company_claims(companyShortname, 'pending',n=10)
-        random_sleep_time(min=1.2, max=3.7)
-
-        answered_claims = self.scrape_company_claims(companyShortname, 'answered',n=10)
-        random_sleep_time(min=1.2, max=3.7)
-
-        complains_general = self.scrape_company_MainProblems(companyShortname)
-        random_sleep_time(min=1.2, max=3.7)
-
-        complains_problems = self.get_MainProblems_problems(complains_general, companyId)
-        complains_categories = self.get_MainProblems_categories(complains_general, companyId)
-        complains_products = self.get_MainProblems_products(complains_general, companyId)
-
-        complains = pd.concat([complains_categories, complains_problems, complains_products]).reset_index(drop=True)
-        claims = pd.concat([pending_claims, answered_claims]).reset_index(drop=True)
-
-        return evolution, claims, complains
     
     def close_connection(self):
+        '''Closes the SQLite database connection.'''
         self.connection.close()
 
 if __name__ == "__main__":

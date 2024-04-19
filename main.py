@@ -1,62 +1,18 @@
 from scraper import ScraperReclameAqui
 from constants import HEADERS
-from functions import random_sleep_time, calculate_process_duration, connect_database
+from functions import calculate_process_duration
 from utils import ArgumentsParse
-import time, pandas as pd, random
-
+import time
 
 if __name__ == "__main__":
     start = time.time()
     scraper = ScraperReclameAqui()
-    sample_company_shortname = 'mercado-livre'
-
-# Query data from Database:
-    # ✅ Query a Id from the database of an specific company.
-    '''sample_company_shortname = 'inter'
-    company_id = scraper.scrape_company_id(sample_company_shortname)
-    print(company_id)'''
-
-# Scrape data from the web:
-
-    # ✅ Get companies from an specific category on the website
-    '''sample_category_url = "https://www.reclameaqui.com.br/segmentos/apostas/casa-de-aposta/" 
-    categories = scraper.get_companies_from_category(sample_category_url)
-    print(categories.head())'''
-
-    # ✅ Request the Id from an specific company.
-    '''sample_company_shortname = 'inter'
-    company_id = scraper.get_company_id(sample_company_shortname)
-    print(company_id)'''
-
-    # ✅ Request the Index Evolution of an specific company.
-    '''evolution_data = scraper.scrape_company_Evolution(sample_company_shortname)
-    print(evolution_data)'''
-
-    # ✅ Request the Main Problems section of an scpecific company.
-    '''main_problems = scraper.scrape_company_MainProblems(sample_company_shortname)'''
-
-    # ✅ Request the Problems section of Main Problems from a specific company.
-    '''problems_company = scraper.get_MainProblems_problems(main_problems)
-    print(problems_company.head(10))'''
-
-    # ✅ Request the Categories problems section of Main Problems from a specific company.
-    '''categories_problems_company = scraper.get_MainProblems_categories(main_problems)
-    print(categories_problems_company.head(10))'''
-
-    # ✅ Request the Products problems section of Main Problems from a specific company.
-    '''products_problems_company = scraper.get_MainProblems_products(main_problems)
-    print(products_problems_company.head(10))'''
-
-    # ✅ Scrape the last complains of an specific company. (could be the "pending" or "answered" complains)
-    '''answered_complains = scraper.scrape_company_claims(sample_company_shortname, 'answered', n=5)
-    pending_complains = scraper.scrape_company_claims(sample_company_shortname, 'pending', n=5)'''
-
-
     args = ArgumentsParse()
+    
     args.arguments()
     args.execute_arguments(scraper)
 
     end = time.time()
     total_time = calculate_process_duration(start, end)
-    print('\n')
-    print(f'Process duration: ----> {total_time}')
+
+    print(f'\nProcess duration: ----> {total_time}')
