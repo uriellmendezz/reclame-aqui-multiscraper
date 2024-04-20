@@ -1,14 +1,36 @@
-import random, time, requests, json, os, sqlite3, pandas as pd, datetime
-from functions import random_sleep_time, calculate_process_duration, connect_database
+import time, requests, sqlite3, pandas as pd, os
+from functions import random_sleep_time, calculate_process_duration
 from constants import HEADERS
 from bs4 import BeautifulSoup
 
 class ScraperReclameAqui:
 
     def __init__(self):
-        self.connection = sqlite3.connect('database.db')
+        self.connection = self.connect_database()
         self.cursor = self.connection.cursor()
 
+    def connect_database(self):
+        if not os.path.exists('database.db'):
+            connection = sqlite3.connect("database.db")
+            cursor = connection.cursor()
+
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS CompaniesData (
+                    companyName INTEGER,
+                    companyShortname TEXT,
+                    companyId TEXT
+                )''')
+
+            data = self.crawl_all_companies(7000)
+            self.insert_data_into_database(data)
+
+            connection.commit()
+            return connection
+        else:
+            connection = sqlite3.connect("database.db")
+            return connection
+        
+    
     def request_get(self, url):
         """Make a request to a page using cookies and headers predefined."""
         response = requests.request(method='GET', url=url, data="", headers=HEADERS)
@@ -23,6 +45,61 @@ class ScraperReclameAqui:
             return BeautifulSoup(response.content, 'html.parser')
         except:
             raise Exception("can't parse html")
+        
+    def crawl_all_companies(self, n_rows:int):
+        """
+        This function scrape all the existing companies from Reclame AQUI website.
+        It iterates each category of the page and saves the results in an array. Then
+        convert this array into a pandas DataFrame and return it.
+        """
+        dfs = []
+        url = f"https://iosite.reclameaqui.com.br/raichu-io-site-v1/company/rankings/{n_rows}"
+        response = self.request_get(url)
+        data_json = response.json()
+
+        if data_json:
+            for key in data_json.keys():
+                df = pd.json_normalize(data_json[key])[['companyName', 'companyShortname', 'companyId']]
+                dfs.append(df)
+            try:
+                full_dataframe = pd.concat(dfs).drop_duplicates(subset='companyId')
+                return full_dataframe
+            except Exception as e:
+                print(f"Error on getting all companies: {e}")
+                return None
+        else:
+            print("No data found.")
+            return None
+
+    def insert_data_into_database(self, full_dataframe):
+        if full_dataframe is not None:
+
+            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='CompaniesData'")
+            table_exists = self.cursor.fetchone()
+
+            if not table_exists:
+                # Si la tabla no existe, la creamos
+                print('Creating "CompaniesData" table in "database.db"')
+                self.cursor.execute('''CREATE TABLE IF NOT EXISTS CompaniesData
+                            (companyName TEXT, companyShortname TEXT, companyId TEXT UNIQUE)''')
+                self.cursor.executemany('''INSERT INTO CompaniesData VALUES (?,?,?)''', full_dataframe.values)
+                self.connection.commit()
+
+            else:
+                self.cursor.execute('''SELECT DISTINCT companyId FROM CompaniesData''')
+                in_database = self.cursor.fetchall()
+
+                in_database_list = [c[0] for c in in_database]
+                no_tracked_companies = full_dataframe[~full_dataframe.companyId.isin(in_database_list)]
+
+                self.cursor.executemany('''INSERT OR IGNORE INTO CompaniesData
+                                (companyName, companyShortname, companyId) VALUES (?, ?, ?)''',
+                                no_tracked_companies.values)
+                print('New companies added to database...')
+                self.connection.commit()
+
+        else:
+            print('The dataframe is empty. No data was inserted into the database.')
 
     def get_companies_from_category(self, categoryLink) -> pd.DataFrame:
         """
@@ -295,7 +372,10 @@ if __name__ == "__main__":
     start = time.time()
     scraper = ScraperReclameAqui()    
 
-    scraper.scrape_ranking_lists('excel-prueba-hojas.xlsx',20)
+    data = scraper.crawl_all_companies(3000)
+    print(data.shape)
+    print('')
+    print(data.head())
 
     scraper.close_connection()
     end = time.time()

@@ -1,23 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor
 import os, random, time, datetime, sqlite3, pandas as pd, argparse
-
-def connect_database(database_name="database.db"):
-    if not os.path.exists('database.db'):
-        connection = sqlite3.connect("database.db")
-        cursor = connection.cursor()
-
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS CompaniesData (
-                companyName INTEGER,
-                companyShortname TEXT,
-                companyId TEXT
-            )''')
-
-        connection.commit()
-        return connection
-    else:
-        connection = sqlite3.connect("database.db")
-        return connection
 
 def calculate_process_duration(start, end):
     total = end - start

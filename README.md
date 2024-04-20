@@ -1,49 +1,71 @@
 # Scraper Reclame AQUI
-#### Steps to use the code
+## Steps to use the code
 
-1. Install Python (if you haven't already) - https://www.python.org/download
+**1. Install Python (if you haven't already) - https://www.python.org/downloads/**
 
-2. Install Git if  you don't have it installed yet: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+**2. Install Git if  you don't have it installed yet: https://git-scm.com/downloads/**
 
-3. You can verify if the Python package management tool (```pip```) is installed by running the following command:
+**3. You can verify if the Python package management tool (```pip```) is installed by running the following command:**
 ```bash
 pip --version
 ```
 
-4. Clone this repository:
+**4. Clone this repository:**
 
 ```bash
-git clone https://github.com/uriellmendezz/upwork-reclameaqui.com.br-data.git
+git clone https://github.com/uriellmendezz/reclame-aqui-multiscraper.git
 ```
 
-5. Go to the root path of the folder and install the requirements
+**5. Go to the root path of the folder and install the requirements**
 
 ```bash
 cd  upwork-reclameaqui.com.br-data/
 pip install -r "requirements.txt"
 ```
 
-6. Once you have done all the steps before, you are able to check below all the commands to start scraping data!
+**6. Once you have done all the steps before, you are able to check below all the commands to start scraping data!**
 
 ## Instructions to use the scraper from Reclame AQUI:
 
 | **Argument** | **Required** | **Type** | **Help** | **Valid choices** | **Examples** | **Works for** |  
 |-----------|-----------|--------------|-------|---------|---------|---------|
+| ```-h``` *(--help)* | No | - | View allowed commands. | - | ```-h```, ```--help```| - |
 | ```-e``` *(--extract)* | Yes | str *(text)* | Section you want to extract. | ['company', 'companies', 'category', 'categories', 'rankings'] | ```-e 'category'```, ```-e 'categories'```, ```-e 'company'```, ```-e 'companies'```, ```-e 'rankings'```| - |
 | ```-d``` *(--data)* | No | str *(text)* | Data you want to scrape. | ['last complains','problems','index evolution'] | ```-d 'last complains'```, ```-d ''problems''```, ```-d 'index evolution'``` | **['company']** |
 | ```-l``` *(--link)* | No | str *(text)* | Category/Company link | <u>*https://www.reclameaqui.com.br/empresa/{company name}/*</u> and <u>*https://www.reclameaqui.com.br/segmentos/{segment name}/{category name}*</u> |*company link:*  ```-l 'https://www.reclameaqui.com.br/empresa/amazon/'```, *category link:*  ```-l 'https://www.reclameaqui.com.br/segmentos/beleza-e-estetica/higiene-pessoal/'```  | **['company', 'companies', 'category', 'categories']** |
 | ```-o``` *(--output)* | Yes | str *(text)* | Output filename | *valid extensions:* *.csv  *.xlsx| ```-o 'test-file.csv'```, ```-o 'test-file.xlsx'```| **['company', 'companies', 'category', 'categories', 'rankings']** | 
-| ```-f``` *(--filename)* | No | str *(text)* | Filename (to massive scrape). | *valid extensions:* *.csv  *.xlsx| ```-f 'links-banks-companies.csv'```, ```-f 'links-beauty-companies-ranking.xlsx'```| **['companies', 'categories']** | 
+| ```-f``` *(--filename)* | No | str *(text)* | Filename (to massive scrape). | *valid extensions:* *.csv  *.xlsx| ```-f 'links-banks-companies.csv'```, ```-f 'C:/Users/root/Downloads/links-beauty-companies-ranking.xlsx'```| **['companies', 'categories']** | 
 
 <br>
 
 ## Examples of usage.
 
-**Extract the index evolution from an specific company.**
+### **See an introduction of how to use the scraper.**
+```bash
+python main.py -h
+```
+
+```bash
+Scraper Reclame AQUI [Documentation: https://github.com/uriellmendezz/reclame-aqui-multiscraper.git]
+
+options:
+  -h, --help            show this help message and exit
+  -e SECTION, --extract SECTION
+                        Specify the name of the group from which you want to extract data.
+  -d DATA, --data DATA  What type of information do you want to extract from the company.
+  -l LINK, --link LINK  Insert the company/category link.
+  -o OUTPUT FILENAME, --output OUTPUT FILENAME
+                        Insert the output filename.
+  -f INPUT FILENAME, --filename INPUT FILENAME
+                        Filename (to massive scrape).
+```
+<br>
+
+### **Extract the <u>index evolution</u> from an specific company.**
+
 ``` bash
 python main.py -e 'company' -d 'index evolution' -l 'https://www.reclameaqui.com.br/empresa/amazon/' -o 'sample-amazon-index_evolution.csv'
 ```
-
 
 ``` bash
                   date  totalEvaluations  answered  ...  totalGeneralEvaluations status  companyShortname
@@ -62,12 +84,11 @@ python main.py -e 'company' -d 'index evolution' -l 'https://www.reclameaqui.com
 ```
 
 <br>
-<br>
 
-**Extract the las complains from an specific company.**
+### **Extract the las <u>complains</u> from an specific company.**
 
 ``` bash
-python main.py -e 'company' -d 'last compains' -l 'https://www.reclameaqui.com.br/empresa/amazon/' -o 'sample-amazon-complains.csv'
+python main.py -e 'company' -d 'last complains' -l 'https://www.reclameaqui.com.br/empresa/amazon/' -o 'sample-amazon-complains.csv'
 ```
 
 
@@ -86,10 +107,10 @@ python main.py -e 'company' -d 'last compains' -l 'https://www.reclameaqui.com.b
 
 [10 rows x 8 columns]
 ```
-<br>
+
 <br>
 
-**Extract the problems from an specific company.**
+### **Extract the <u>problems</u> from an specific company.**
 
 
 ``` bash
@@ -111,9 +132,8 @@ python main.py -e 'company' -d 'problems' -l 'https://www.reclameaqui.com.br/emp
 ```
 
 <br>
-<br>
 
-**Extract data from an specific category.**
+### **Extract data from an specific category.**
 
 ``` bash
 python main.py -e 'category' -l 'https://www.reclameaqui.com.br/segmentos/eletroeletronicos/eletroeletronicos-acessorios/' -o 'sample-electronicos-category.csv'
@@ -136,7 +156,7 @@ python main.py -e 'category' -l 'https://www.reclameaqui.com.br/segmentos/eletro
 
 <br>
 
-**Given an Excel file, extract data from various companies. The program will download three files**
+### **Given an Excel file, extract data from various companies. The program will download three files.**
 
 *The Excel file should look like the one shown below.*
 ![example of template](example-excel-image.png)
@@ -185,7 +205,7 @@ Index evolution:
 ```
 <br>
 
-**Extract current company ranking tables. Downloads and Excel file with multiple spredsheets (each one a ranking table)**
+### **Extract current company <u>ranking tables</u>. The program will downloads an Excel file with multiple spredsheets (each one a ranking table).**
 
 ```bash
 python main.py -e 'rankings' -o 'rankings-tables-xlsx'

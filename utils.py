@@ -4,13 +4,13 @@ from functions import random_sleep_time
 
 class ArgumentsParse:
     def arguments(self):
-        parser = argparse.ArgumentParser(description='Scraping Reclamaqui')
 
+        parser = argparse.ArgumentParser(description='Scraper Reclame AQUI [Documentation: git clone https://github.com/uriellmendezz/reclame-aqui-multiscraper.git]')
         company_choices = ['last complains','problems','index evolution']
         
         parser.add_argument('-e','--extract',
                             choices=['category', 'categories', 'company', 'companies', 'rankings'],
-                            metavar='CHOICE',
+                            metavar='SECTION',
                             type=str,
                             help='Specify the name of the group from which you want to extract data.',
                             required=True)
@@ -29,13 +29,13 @@ class ArgumentsParse:
                             required=False)
         
         parser.add_argument('-o', '--output',
-                            metavar='FILENAME',
+                            metavar='OUTPUT FILENAME',
                             type=str,
                             help='Insert the output filename.',
                             required=True)
         
         parser.add_argument('-f', '--filename',
-                            metavar='FILENAME',
+                            metavar='INPUT FILENAME',
                             type=str,
                             help='Filename (to massive scrape).',
                             required=False)

@@ -1,9 +1,8 @@
 env/
 reclameaqui-ranking_files/
-*.ipynb
-all_companies.csv
 ranking/
-database_companies.csv
 results-dataframes/
+__pycache__/
+*.ipynb
 *.csv
 *.xlsx
