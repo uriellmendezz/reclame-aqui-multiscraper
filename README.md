@@ -19,7 +19,7 @@ git clone https://github.com/uriellmendezz/reclame-aqui-multiscraper.git
 **5. Go to the root path of the folder and install the requirements**
 
 ```bash
-cd  upwork-reclameaqui.com.br-data/
+cd  reclame-aqui-multiscraper/
 pip install -r "requirements.txt"
 ```
 
@@ -85,7 +85,7 @@ python main.py -e 'company' -d 'index evolution' -l 'https://www.reclameaqui.com
 
 <br>
 
-### **Extract the las <u>complains</u> from an specific company.**
+### **Extract the <u>last complains</u> from an specific company.**
 
 ``` bash
 python main.py -e 'company' -d 'last complains' -l 'https://www.reclameaqui.com.br/empresa/amazon/' -o 'sample-amazon-complains.csv'
